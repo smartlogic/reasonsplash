@@ -1,0 +1,17 @@
+{
+  "name": "reasonsplash",
+  "reason": {
+    "react-jsx": 2
+  },
+  "bsc-flags": ["-bs-super-errors"],
+  "bs-dependencies": [
+    "bs-react-native",
+    "bs-fetch",
+    "bs-json",
+    "reason-react"
+  ],
+  "sources": [{
+    "dir": "re"
+  }],
+  "refmt": 3
+}

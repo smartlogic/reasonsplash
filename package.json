@@ -1,0 +1,31 @@
+{
+  "name": "reasonsplash",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest",
+    "build": "bsb -make-world -clean-world",
+    "watch": "bsb -make-world -clean-world -w"
+  },
+  "dependencies": {
+    "bs-fetch": "^0.2.0",
+    "bs-json": "^0.2.4",
+    "bs-platform": "2.1.0",
+    "bs-react-native": "0.4.0",
+    "mock-fetch-api": "^1.0.7",
+    "react": "16.0.0",
+    "react-native": "0.51.0",
+    "reason-react": "0.3.0",
+    "unsplash-js": "^4.8.0"
+  },
+  "devDependencies": {
+    "babel-jest": "21.2.0",
+    "babel-preset-react-native": "4.0.0",
+    "jest": "21.2.1",
+    "react-test-renderer": "16.0.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}

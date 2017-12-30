@@ -14,9 +14,14 @@ type photo = {
 };
 type props = {
   photos: list(photo),
-  fetchPhotos: string => unit,
-  refreshing: bool
+  fetchPhotos: unit => unit
 };
+type state = {
+  canFetch: bool
+};
+type action =
+  | SetFetch(bool)
+  | NoUpdate;
 
 let windowHeight = Dimensions.get(`window)##height;
 let windowWidth = Dimensions.get(`window)##width;
@@ -36,8 +41,8 @@ let styles = Style.({
   ])
 });
 
-let component = ReasonReact.statelessComponent("PhotoGrid");
-let make = (~photos, ~fetchPhotos, ~refreshing, _children) => {
+let component = ReasonReact.reducerComponentWithRetainedProps("PhotoGrid");
+let make = (~photos, ~fetchPhotos, _children) => {
 	let renderPhoto = (photo: photo) =>
     <View>
       <Image
@@ -61,19 +66,40 @@ let make = (~photos, ~fetchPhotos, ~refreshing, _children) => {
       [|<Text value="No photos..." />|]
 		| _ => Array.of_list(List.map(renderPhoto, photos))
 		};
-  let onScroll = (event: RNEvent.NativeScrollEvent.t) => {
+  let onScroll = canFetch => (event: RNEvent.NativeScrollEvent.t) => {
     let contentHeight = RNEvent.NativeScrollEvent.contentSize(event).height;
     let contentOffsetY = RNEvent.NativeScrollEvent.contentOffset(event).y;
     let isEndReached = contentOffsetY +. float_of_int(windowHeight) >= contentHeight +. 10.;
 
-    if (isEndReached && !refreshing)
+    if (isEndReached && canFetch) {
       fetchPhotos();
+      SetFetch(false);
+    } else {
+      NoUpdate;
+    };
   };
 
 	{
-		...component,
-		render: (_self) =>
-      <ScrollView onScroll=onScroll scrollEventThrottle=16 overScrollMode=`never bounces=false>
+    ...component,
+    initialState: () => {
+      canFetch: true
+    },
+    retainedProps: {photos, fetchPhotos},
+    willReceiveProps: (self) => {
+      switch (List.length(photos) > List.length(self.retainedProps.photos)) {
+      | true => {...self.state, canFetch: true}
+      | false => self.state
+      };
+    },
+    reducer: (action, state) => {
+      switch action {
+      | SetFetch(canFetch) =>
+        ReasonReact.Update({...state, canFetch});
+      | _ => ReasonReact.NoUpdate;
+      };
+    },
+		render: (self) =>
+      <ScrollView onScroll=self.reduce(onScroll(self.state.canFetch)) scrollEventThrottle=16>
         <View style=styles##container>
           ...(renderPhotos(photos))
         </View>

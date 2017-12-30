@@ -3,12 +3,10 @@ open PhotoGrid;
 
 type state = {
 	data: list(photo),
-  page: int,
-  refreshing: bool
+  page: int
 };
 type action =
-	| UpdateData(Js.Json.t)
-  | SetRefresh(bool);
+	| UpdateData(Js.Json.t);
 type fetchCallback = Js.Json.t => unit;
 
 module Decode = {
@@ -69,33 +67,24 @@ let make = (_children) => {
     );
   };
   let fetchPhotos = (_, self) => {
-    self.ReasonReact.reduce((_) => SetRefresh(true))();
-
     fetchData(~page=self.ReasonReact.state.page, ~callback=(json => {
       self.ReasonReact.reduce((_) => UpdateData(json))();
-    }));
-
-    ();
+    }))
+    |> ignore;
   };
 
   {
     ...component,
     initialState: () => {
       data: [],
-      page: 1,
-      refreshing: false,
+      page: 1
     },
     reducer: (action, state) => {
       switch action {
-      | SetRefresh(refreshing) =>
-        ReasonReact.Update({...state, refreshing});
       | UpdateData(json) =>
-        Js.log("updating data");
-        Js.log(json);
         let { page, data } = state;
         ReasonReact.Update({
           ...state,
-          refreshing: false,
           page: page + 1,
           data: List.append(data, formatData(json))
         })
@@ -106,12 +95,11 @@ let make = (_children) => {
       fetchPhotos()(self);
       ReasonReact.NoUpdate;
     },
-    render: ({state: {page, data, refreshing}, handle}) => {
+    render: ({state: {page, data}, handle}) => {
       <View style=style##app>
         <PhotoGrid
           photos=data
           fetchPhotos=handle(fetchPhotos)
-          refreshing=refreshing
         />
       </View>;
     }

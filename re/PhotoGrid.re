@@ -17,15 +17,17 @@ type props = {
   fetchPhotos: unit => unit
 };
 type state = {
-  canFetch: bool
+  canFetch: bool,
+  selectedPhoto: option(photo)
 };
 type action =
   | SetFetch(bool)
+  | SelectPhoto(option(photo))
   | NoUpdate;
 
-let windowHeight = Dimensions.get(`window)##height;
-let windowWidth = Dimensions.get(`window)##width;
-let thumbWidth = float_of_int(windowWidth / 2);
+let windowHeight = float_of_int(Dimensions.get(`window)##height);
+let windowWidth = float_of_int(Dimensions.get(`window)##width);
+let thumbWidth = windowWidth /. 2.;
 let styles = Style.({
   "container": style([
     flex(1.),
@@ -38,38 +40,35 @@ let styles = Style.({
   "photo": style([
     width(Pt(thumbWidth)),
     height(Pt(thumbWidth)),
+    flexShrink(1.),
+    alignSelf(Center)
   ])
 });
 
 let component = ReasonReact.reducerComponentWithRetainedProps("PhotoGrid");
 let make = (~photos, ~fetchPhotos, _children) => {
-  let renderPhoto = (photo: photo) =>
-    <View>
+  let renderPhoto = self => (photo: photo) =>
+    <Lightbox
+      onOpen=self.ReasonReact.reduce((_) => SelectPhoto(Some(photo)))
+      onClose=self.ReasonReact.reduce((_) => SelectPhoto(None))
+      activeProps=({"width": windowWidth, "flex": 1, "resizeMode": "contain"})
+    >
       <Image
         style=styles##photo
         resizeMode=`cover
-        source=(
-          URI(
-            Image.(
-              imageURISource(
-                ~uri=photo.urls.regular,
-                ()
-              )
-            )
-          )
-        )
+        source=URI(Image.(imageURISource(~uri=photo.urls.regular, ())))
       />
-    </View>;
-  let renderPhotos = photos =>
+    </Lightbox>;
+  let renderPhotos = (photos, self) =>
     switch (List.length(photos)) {
     | 0 =>
       [|<Text value="No photos..." />|]
-    | _ => Array.of_list(List.map(renderPhoto, photos))
+    | _ => Array.of_list(List.map(renderPhoto(self), photos))
     };
   let onScroll = canFetch => (event: RNEvent.NativeScrollEvent.t) => {
     let contentHeight = RNEvent.NativeScrollEvent.contentSize(event).height;
     let contentOffsetY = RNEvent.NativeScrollEvent.contentOffset(event).y;
-    let isEndReached = contentOffsetY +. float_of_int(windowHeight) >= contentHeight +. 10.;
+    let isEndReached = contentOffsetY +. windowHeight >= contentHeight +. 10.;
 
     if (isEndReached && canFetch) {
       fetchPhotos();
@@ -82,7 +81,8 @@ let make = (~photos, ~fetchPhotos, _children) => {
   {
     ...component,
     initialState: () => {
-      canFetch: true
+      canFetch: true,
+      selectedPhoto: None
     },
     retainedProps: {photos, fetchPhotos},
     willReceiveProps: (self) => {
@@ -93,15 +93,15 @@ let make = (~photos, ~fetchPhotos, _children) => {
     },
     reducer: (action, state) => {
       switch action {
-      | SetFetch(canFetch) =>
-        ReasonReact.Update({...state, canFetch});
+      | SetFetch(canFetch) => ReasonReact.Update({...state, canFetch})
+      | SelectPhoto(photo) => ReasonReact.Update({...state, selectedPhoto: photo})
       | _ => ReasonReact.NoUpdate;
       };
     },
     render: (self) =>
       <ScrollView onScroll=self.reduce(onScroll(self.state.canFetch)) scrollEventThrottle=16>
         <View style=styles##container>
-          ...(renderPhotos(photos))
+          ...(renderPhotos(photos, self))
         </View>
       </ScrollView>
   };

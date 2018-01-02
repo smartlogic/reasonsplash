@@ -16,6 +16,7 @@
     "mock-fetch-api": "^1.0.7",
     "react": "16.0.0",
     "react-native": "0.51.0",
+    "react-native-lightbox": "^0.7.0",
     "reason-react": "0.3.0",
     "unsplash-js": "^4.8.0"
   },

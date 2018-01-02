@@ -55,3 +55,8 @@ buck-out/
 # Reason
 #
 re/Environment.re
+
+# Bucklescript
+#
+lib
+>>>>>>> 3ac5566... Ignore compiled BS files

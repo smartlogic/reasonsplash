@@ -24,7 +24,3 @@ let unsplash = createUnsplashClient({
 });
 
 let listPhotos = unsplash##photos##listPhotos;
-
-/* 
-[@bs.module "../../../re/unsplash_test"] external listPhotos : (int, int, string) => Js.Promise.t(Fetch.Response.t) = "default";
-listPhotos(1, 16, "trending"); */

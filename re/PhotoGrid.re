@@ -1,16 +1,16 @@
 open BsReactNative;
 
 type urls = {
-	full: string,
-	regular: string,
-	small: string,
-	thumb: string
+  full: string,
+  regular: string,
+  small: string,
+  thumb: string
 };
 type photo = {
-	id: string,
-	description: option(string),
-	likes: int,
-	urls: urls
+  id: string,
+  description: option(string),
+  likes: int,
+  urls: urls
 };
 type props = {
   photos: list(photo),
@@ -27,15 +27,15 @@ let windowHeight = Dimensions.get(`window)##height;
 let windowWidth = Dimensions.get(`window)##width;
 let thumbWidth = float_of_int(windowWidth / 2);
 let styles = Style.({
-	"container": style([
-		flex(1.),
+  "container": style([
+    flex(1.),
     flexDirection(Row),
     flexWrap(Wrap),
     justifyContent(FlexStart),
     alignItems(Center),
     margin(Pt(0.))
   ]),
-	"photo": style([
+  "photo": style([
     width(Pt(thumbWidth)),
     height(Pt(thumbWidth)),
   ])
@@ -43,7 +43,7 @@ let styles = Style.({
 
 let component = ReasonReact.reducerComponentWithRetainedProps("PhotoGrid");
 let make = (~photos, ~fetchPhotos, _children) => {
-	let renderPhoto = (photo: photo) =>
+  let renderPhoto = (photo: photo) =>
     <View>
       <Image
         style=styles##photo
@@ -60,12 +60,12 @@ let make = (~photos, ~fetchPhotos, _children) => {
         )
       />
     </View>;
-	let renderPhotos = photos =>
-		switch (List.length(photos)) {
-		| 0 =>
+  let renderPhotos = photos =>
+    switch (List.length(photos)) {
+    | 0 =>
       [|<Text value="No photos..." />|]
-		| _ => Array.of_list(List.map(renderPhoto, photos))
-		};
+    | _ => Array.of_list(List.map(renderPhoto, photos))
+    };
   let onScroll = canFetch => (event: RNEvent.NativeScrollEvent.t) => {
     let contentHeight = RNEvent.NativeScrollEvent.contentSize(event).height;
     let contentOffsetY = RNEvent.NativeScrollEvent.contentOffset(event).y;
@@ -79,7 +79,7 @@ let make = (~photos, ~fetchPhotos, _children) => {
     };
   };
 
-	{
+  {
     ...component,
     initialState: () => {
       canFetch: true
@@ -98,11 +98,11 @@ let make = (~photos, ~fetchPhotos, _children) => {
       | _ => ReasonReact.NoUpdate;
       };
     },
-		render: (self) =>
+    render: (self) =>
       <ScrollView onScroll=self.reduce(onScroll(self.state.canFetch)) scrollEventThrottle=16>
         <View style=styles##container>
           ...(renderPhotos(photos))
         </View>
       </ScrollView>
-	};
+  };
 };

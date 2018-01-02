@@ -2,11 +2,11 @@ open BsReactNative;
 open PhotoGrid;
 
 type state = {
-	data: list(photo),
+  data: list(photo),
   page: int
 };
 type action =
-	| UpdateData(Js.Json.t);
+  | UpdateData(Js.Json.t);
 type fetchCallback = Js.Json.t => unit;
 
 module Decode = {

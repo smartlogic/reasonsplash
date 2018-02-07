@@ -58,14 +58,13 @@ let make = (_children) => {
     | Some(data) => dataToList(data)
     | None => []
     };
-  let fetchData = (~page: int, ~callback) => {
+  let fetchData = (~page: int, ~callback) =>
     Js.Promise.(
       ([@bs] Unsplash.listPhotos(page, 16, "trending"))
       |> then_(Fetch.Response.json)
       |> then_(json => resolve(callback(json)))
       |> catch((err) => resolve(Js.log(err)))
     );
-  };
   let fetchPhotos = (_, self) => {
     fetchData(~page=self.ReasonReact.state.page, ~callback=(json => {
       self.ReasonReact.reduce((_) => UpdateData(json))();

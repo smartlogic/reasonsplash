@@ -18,21 +18,12 @@ module Decode = {
       thumb: json |> field("thumb", string)
     };
 
-  /* extract nested urls JSON from full payload */ 
   let photo = json => {
-    let jsonUrls = switch (Js.Json.decodeObject(json)) {
-    | Some(o) => switch (Js.Dict.get(o, "urls")) {
-      | Some(u) => u
-      | None => Js.Json.object_(Js.Dict.empty())
-      };
-    | None => Js.Json.object_(Js.Dict.empty())
-    };
-
     Json.Decode.{
       id: json |> field("id", string),
       description: json |> optional(field("description", string)),
       likes: json |> field("likes", int),
-      urls: jsonUrls |> urls
+      urls: json |> field("urls", urls)
     };
   };
 };

@@ -48,16 +48,7 @@ let make = (~photos, ~fetchPhotos, _children) => {
       <Image
         style=styles##photo
         resizeMode=`cover
-        source=(
-          URI(
-            Image.(
-              imageURISource(
-                ~uri=photo.urls.regular,
-                ()
-              )
-            )
-          )
-        )
+        source=URI(Image.(imageURISource(~uri=photo.urls.regular, ())))
       />
     </View>;
   let renderPhotos = photos =>
@@ -87,14 +78,14 @@ let make = (~photos, ~fetchPhotos, _children) => {
     retainedProps: {photos, fetchPhotos},
     willReceiveProps: (self) => {
       switch (List.length(photos) > List.length(self.retainedProps.photos)) {
-      | true => {...self.state, canFetch: true}
+      | true => {canFetch: true}
       | false => self.state
       };
     },
-    reducer: (action, state) => {
+    reducer: (action, _state) => {
       switch action {
       | SetFetch(canFetch) =>
-        ReasonReact.Update({...state, canFetch});
+        ReasonReact.Update({canFetch: canFetch});
       | _ => ReasonReact.NoUpdate;
       };
     },

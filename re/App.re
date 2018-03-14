@@ -56,12 +56,11 @@ let make = (_children) => {
       |> then_(json => resolve(callback(json)))
       |> catch((err) => resolve(Js.log(err)))
     );
-  let fetchPhotos = (_, self) => {
+  let fetchPhotos = (_, self) =>
     fetchData(~page=self.ReasonReact.state.page, ~callback=(json => {
       self.ReasonReact.reduce((_) => UpdateData(json))();
     }))
     |> ignore;
-  };
 
   {
     ...component,
@@ -74,18 +73,16 @@ let make = (_children) => {
       | UpdateData(json) =>
         let { page, data } = state;
         ReasonReact.Update({
-          ...state,
           page: page + 1,
           data: List.append(data, formatData(json))
-        })
-      | _ => ReasonReact.NoUpdate;
+        });
       };
     },
     didMount: (self) => {
       fetchPhotos()(self);
       ReasonReact.NoUpdate;
     },
-    render: ({state: {page, data}, handle}) => {
+    render: ({state: {data}, handle}) => {
       <View style=style##app>
         <PhotoGrid
           photos=data

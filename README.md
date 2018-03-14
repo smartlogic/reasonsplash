@@ -24,3 +24,5 @@
    ```
    yarn run watch
    ```
+
+![Demo](demo.gif?raw=true "Demo")

@@ -17,10 +17,14 @@ type props = {
   fetchPhotos: unit => unit
 };
 type state = {
-  canFetch: bool
+  canFetch: bool,
+  isModalVisible: bool,
+  activePhotoUrl: string
 };
 type action =
   | SetFetch(bool)
+  | ShowPhoto(string)
+  | DismissModal
   | NoUpdate;
 
 let windowHeight = Dimensions.get(`window)##height;
@@ -43,19 +47,23 @@ let styles = Style.({
 
 let component = ReasonReact.reducerComponentWithRetainedProps("PhotoGrid");
 let make = (~photos, ~fetchPhotos, _children) => {
-  let renderPhoto = (photo: photo) =>
-    <View>
-      <Image
-        style=styles##photo
-        resizeMode=`cover
-        source=URI(Image.(imageURISource(~uri=photo.urls.regular, ())))
-      />
-    </View>;
-  let renderPhotos = photos =>
+  let renderPhoto = (onPressPhoto, photo: photo) => {
+    let url = photo.urls.regular;
+    <TouchableOpacity onPress=onPressPhoto(url)>
+      <View>
+        <Image
+          style=styles##photo
+          resizeMode=`cover
+          source=URI(Image.(imageURISource(~uri=url, ())))
+        />
+      </View>
+    </TouchableOpacity>;
+  };
+  let renderPhotos = (onPressPhoto, photos) =>
     switch (List.length(photos)) {
     | 0 =>
       [|<Text value="No photos..." />|]
-    | _ => Array.of_list(List.map(renderPhoto, photos))
+    | _ => Array.of_list(List.map(renderPhoto(onPressPhoto), photos))
     };
   let onScroll = canFetch => (event: RNEvent.NativeScrollEvent.t) => {
     let contentHeight = RNEvent.NativeScrollEvent.contentSize(event).height;
@@ -73,27 +81,43 @@ let make = (~photos, ~fetchPhotos, _children) => {
   {
     ...component,
     initialState: () => {
-      canFetch: true
+      canFetch: true,
+      isModalVisible: false,
+      activePhotoUrl: ""
     },
     retainedProps: {photos, fetchPhotos},
     willReceiveProps: (self) => {
       switch (List.length(photos) > List.length(self.retainedProps.photos)) {
-      | true => {canFetch: true}
+      | true => {...self.state, canFetch: true}
       | false => self.state
       };
     },
-    reducer: (action, _state) => {
+    reducer: (action, state) => {
       switch action {
       | SetFetch(canFetch) =>
-        ReasonReact.Update({canFetch: canFetch});
+        ReasonReact.Update({...state, canFetch: canFetch});
+      | ShowPhoto(url) =>
+        ReasonReact.Update({
+          ...state,
+          isModalVisible: true,
+          activePhotoUrl: url
+        })
+      | DismissModal =>
+        ReasonReact.Update({
+          ...state,
+          isModalVisible: false,
+          activePhotoUrl: ""
+        })
       | _ => ReasonReact.NoUpdate;
       };
     },
-    render: (self) =>
-      <ScrollView onScroll=self.reduce(onScroll(self.state.canFetch)) scrollEventThrottle=16>
+    render: ({reduce, state: {canFetch, isModalVisible, activePhotoUrl}}) => {
+      <ScrollView onScroll=reduce(onScroll(canFetch)) scrollEventThrottle=16>
+        <PhotoModal isVisible=isModalVisible onDismiss=reduce((_) => DismissModal) photoUrl=activePhotoUrl/>
         <View style=styles##container>
-          ...(renderPhotos(photos))
+          ...(renderPhotos((url) => reduce((_) => ShowPhoto(url)), photos))
         </View>
       </ScrollView>
+    }
   };
 };
